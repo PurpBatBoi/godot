@@ -269,8 +269,7 @@ struct Texture {
 				pmag = GL_LINEAR;
 				max_lod = 0;
 			} break;
-			case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT:
-			case RS::CANVAS_ITEM_TEXTURE_FILTER_BOX: {
+			case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT: {
 				pmin = GL_NEAREST;
 				pmag = GL_NEAREST;
 				max_lod = 0;

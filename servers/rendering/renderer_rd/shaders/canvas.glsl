@@ -572,7 +572,7 @@ vec4 canvas_sample_filter_point(texture2D tex, sampler tex_sampler, vec2 tex_siz
 }
 
 vec4 canvas_sample_filter(texture2D tex, sampler tex_sampler, vec2 uv) {
-	if (!sc_use_filter_3point() && !sc_use_filter_box()) {
+	if (!sc_use_filter_3point()) {
 		return texture(sampler2D(tex, tex_sampler), uv);
 	}
 
@@ -586,16 +586,12 @@ vec4 canvas_sample_filter(texture2D tex, sampler tex_sampler, vec2 uv) {
 	vec4 t2 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord + ivec2(0, 1));
 	vec4 t3 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord + ivec2(1, 1));
 
-	if (sc_use_filter_3point()) {
-		if (f.x + f.y < 1.0) {
-			return t0 + (t1 - t0) * f.x + (t2 - t0) * f.y;
-		}
-
-		vec2 weights = vec2(1.0) - f;
-		return t3 + (t2 - t3) * weights.x + (t1 - t3) * weights.y;
+	if (f.x + f.y < 1.0) {
+		return t0 + (t1 - t0) * f.x + (t2 - t0) * f.y;
 	}
 
-	return mix(mix(t0, t1, f.x), mix(t2, t3, f.x), f.y);
+	vec2 weights = vec2(1.0) - f;
+	return t3 + (t2 - t3) * weights.x + (t1 - t3) * weights.y;
 }
 
 void main() {

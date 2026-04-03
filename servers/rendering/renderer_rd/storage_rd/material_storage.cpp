@@ -2474,8 +2474,7 @@ MaterialStorage::Samplers MaterialStorage::samplers_rd_allocate(float p_mipmap_b
 					sampler_state.min_filter = RD::SAMPLER_FILTER_LINEAR;
 					sampler_state.max_lod = 0;
 				} break;
-				case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT:
-				case RS::CANVAS_ITEM_TEXTURE_FILTER_BOX: {
+				case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT: {
 					sampler_state.mag_filter = RD::SAMPLER_FILTER_NEAREST;
 					sampler_state.min_filter = RD::SAMPLER_FILTER_NEAREST;
 					sampler_state.max_lod = 0;

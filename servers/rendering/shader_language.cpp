@@ -223,7 +223,6 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"FILTER_NEAREST",
 	"FILTER_LINEAR",
 	"FILTER_3POINT",
-	"FILTER_BOX",
 	"FILTER_NEAREST_MIPMAP",
 	"FILTER_LINEAR_MIPMAP",
 	"FILTER_NEAREST_MIPMAP_ANISOTROPIC",
@@ -397,7 +396,6 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_FILTER_NEAREST, "filter_nearest", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_LINEAR, "filter_linear", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_3POINT, "filter_3point", CF_UNSPECIFIED, {}, {} },
-	{ TK_FILTER_BOX, "filter_box", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_NEAREST_MIPMAP, "filter_nearest_mipmap", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_LINEAR_MIPMAP, "filter_linear_mipmap", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC, "filter_nearest_mipmap_anisotropic", CF_UNSPECIFIED, {}, {} },
@@ -1257,9 +1255,6 @@ String ShaderLanguage::get_texture_filter_name(TextureFilter p_filter) {
 		} break;
 		case FILTER_3POINT: {
 			result = "filter_3point";
-		} break;
-		case FILTER_BOX: {
-			result = "filter_box";
 		} break;
 		case FILTER_NEAREST_MIPMAP: {
 			result = "filter_nearest_mipmap";
@@ -9814,7 +9809,7 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 									TK_HINT_SOURCE_COLOR, TK_HINT_COLOR_CONVERSION_DISABLED, TK_REPEAT_DISABLE, TK_REPEAT_ENABLE,
 									TK_FILTER_LINEAR, TK_FILTER_LINEAR_MIPMAP, TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC,
 									TK_FILTER_NEAREST, TK_FILTER_NEAREST_MIPMAP, TK_FILTER_NEAREST_MIPMAP_ANISOTROPIC,
-									TK_FILTER_3POINT, TK_FILTER_BOX
+									TK_FILTER_3POINT
 								};
 								if (!supported_hints.has(tk.type)) {
 									_set_error(RTR("This hint is not supported for uniform arrays."));
@@ -10048,9 +10043,6 @@ Error ShaderLanguage::_parse_shader(const HashMap<StringName, FunctionInfo> &p_f
 								} break;
 								case TK_FILTER_3POINT: {
 									new_filter = FILTER_3POINT;
-								} break;
-								case TK_FILTER_BOX: {
-									new_filter = FILTER_BOX;
 								} break;
 								case TK_FILTER_NEAREST_MIPMAP: {
 									new_filter = FILTER_NEAREST_MIPMAP;
@@ -12060,7 +12052,6 @@ Error ShaderLanguage::complete(const String &p_code, const ShaderCompileInfo &p_
 				if (current_uniform_filter == FILTER_DEFAULT) {
 					options.push_back("filter_linear");
 					options.push_back("filter_3point");
-					options.push_back("filter_box");
 					options.push_back("filter_linear_mipmap");
 					options.push_back("filter_linear_mipmap_anisotropic");
 					options.push_back("filter_nearest");

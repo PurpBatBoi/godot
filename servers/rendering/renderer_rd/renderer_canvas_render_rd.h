@@ -121,7 +121,6 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 				uint32_t use_msdf : 1;
 				uint32_t use_lcd : 1;
 				uint32_t use_filter_3point : 1;
-				uint32_t use_filter_box : 1;
 			};
 		};
 	};

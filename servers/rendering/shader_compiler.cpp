@@ -1176,6 +1176,7 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 					bool texture_func_no_uv = false;
 					bool texture_func_returns_data = false;
 					bool texture_func_simple = false;
+					ShaderLanguage::TextureFilter custom_filter = ShaderLanguage::FILTER_DEFAULT;
 
 					if (onode->op == SL::OP_STRUCT) {
 						code += _mkid(vnode->name);
@@ -1357,6 +1358,17 @@ String ShaderCompiler::_dump_node_code(const SL::Node *p_node, int p_level, Gene
 									if (u.hint == ShaderLanguage::ShaderNode::Uniform::HINT_SCREEN_TEXTURE) {
 										is_screen_texture = true;
 									}
+									// Track custom filter hints for texture() call rewriting.
+									if (u.filter == ShaderLanguage::FILTER_3POINT) {
+										custom_filter = u.filter;
+									}
+								}
+
+								// For filter_3point hint on simple texture() calls, rewrite to use
+								// injected software 3-point filtering helper function.
+								if (texture_func_simple && custom_filter == ShaderLanguage::FILTER_3POINT) {
+									code = code.replace("texture(", "_godot_filter_3point(");
+									r_gen_code.uses_filter_3point = true;
 								}
 
 								code += node_code;
@@ -1613,6 +1625,7 @@ Error ShaderCompiler::compile(RS::ShaderMode p_mode, const String &p_code, Ident
 	r_gen_code.uses_screen_texture = false;
 	r_gen_code.uses_depth_texture = false;
 	r_gen_code.uses_normal_roughness_texture = false;
+	r_gen_code.uses_filter_3point = false;
 
 	used_name_defines.clear();
 	used_rmode_defines.clear();
@@ -1623,6 +1636,29 @@ Error ShaderCompiler::compile(RS::ShaderMode p_mode, const String &p_code, Ident
 	function = nullptr;
 	// Return value only relevant within nested calls.
 	_ALLOW_DISCARD_ _dump_node_code(shader, 1, r_gen_code, *p_actions, actions, false);
+
+	// Inject software texture filtering helper functions into fragment globals
+	// when filter_3point hints are used on sampler uniforms.
+	if (r_gen_code.uses_filter_3point) {
+		r_gen_code.stage_globals[STAGE_FRAGMENT] = String(
+				"vec4 _godot_filter_3point(sampler2D p_tex, vec2 p_uv) {\n"
+				"\tvec2 tex_size = vec2(textureSize(p_tex, 0));\n"
+				"\tvec2 pixel_coord = p_uv * tex_size - vec2(0.5);\n"
+				"\tivec2 texel_coord = ivec2(floor(pixel_coord));\n"
+				"\tvec2 f = fract(pixel_coord);\n"
+				"\tivec2 ts = ivec2(tex_size);\n"
+				"\tvec4 t0 = texelFetch(p_tex, ivec2((texel_coord.x % ts.x + ts.x) % ts.x, (texel_coord.y % ts.y + ts.y) % ts.y), 0);\n"
+				"\tvec4 t1 = texelFetch(p_tex, ivec2(((texel_coord.x + 1) % ts.x + ts.x) % ts.x, (texel_coord.y % ts.y + ts.y) % ts.y), 0);\n"
+				"\tvec4 t2 = texelFetch(p_tex, ivec2((texel_coord.x % ts.x + ts.x) % ts.x, ((texel_coord.y + 1) % ts.y + ts.y) % ts.y), 0);\n"
+				"\tvec4 t3 = texelFetch(p_tex, ivec2(((texel_coord.x + 1) % ts.x + ts.x) % ts.x, ((texel_coord.y + 1) % ts.y + ts.y) % ts.y), 0);\n"
+				"\tif (f.x + f.y < 1.0) {\n"
+				"\t\treturn t0 + (t1 - t0) * f.x + (t2 - t0) * f.y;\n"
+				"\t}\n"
+				"\tvec2 w = vec2(1.0) - f;\n"
+				"\treturn t3 + (t2 - t3) * w.x + (t1 - t3) * w.y;\n"
+				"}\n") +
+				r_gen_code.stage_globals[STAGE_FRAGMENT];
+	}
 
 	return OK;
 }

@@ -819,9 +819,6 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 		case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT:
 			filter_specialization = CanvasShaderGLES3::USE_TEXTURE_FILTER_3POINT;
 			break;
-		case RS::CANVAS_ITEM_TEXTURE_FILTER_BOX:
-			filter_specialization = CanvasShaderGLES3::USE_TEXTURE_FILTER_BOX;
-			break;
 		default:
 			break;
 	}
@@ -830,7 +827,7 @@ void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_rend
 		_new_batch(r_batch_broken);
 
 		state.canvas_instance_batches[state.current_batch_index].filter = texture_filter;
-		state.canvas_instance_batches[state.current_batch_index].specialization &= ~(CanvasShaderGLES3::USE_TEXTURE_FILTER_3POINT | CanvasShaderGLES3::USE_TEXTURE_FILTER_BOX);
+		state.canvas_instance_batches[state.current_batch_index].specialization &= ~(CanvasShaderGLES3::USE_TEXTURE_FILTER_3POINT);
 		state.canvas_instance_batches[state.current_batch_index].specialization |= filter_specialization;
 	}
 

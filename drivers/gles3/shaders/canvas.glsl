@@ -12,7 +12,6 @@ USE_PRIMITIVE = false
 USE_ATTRIBUTES = false
 USE_INSTANCING = false
 USE_TEXTURE_FILTER_3POINT = false
-USE_TEXTURE_FILTER_BOX = false
 
 #[vertex]
 
@@ -571,7 +570,7 @@ vec4 canvas_sample_filter_point(sampler2D tex, vec2 tex_size, ivec2 texel_coord)
 }
 
 vec4 canvas_sample_filter(sampler2D tex, vec2 uv) {
-#if !defined(USE_TEXTURE_FILTER_3POINT) && !defined(USE_TEXTURE_FILTER_BOX)
+#if !defined(USE_TEXTURE_FILTER_3POINT)
 	return texture(tex, uv);
 #else
 	vec2 tex_size = vec2(textureSize(tex, 0));
@@ -584,16 +583,12 @@ vec4 canvas_sample_filter(sampler2D tex, vec2 uv) {
 	vec4 t2 = canvas_sample_filter_point(tex, tex_size, texel_coord + ivec2(0, 1));
 	vec4 t3 = canvas_sample_filter_point(tex, tex_size, texel_coord + ivec2(1, 1));
 
-#if defined(USE_TEXTURE_FILTER_3POINT)
 	if (f.x + f.y < 1.0) {
 		return t0 + (t1 - t0) * f.x + (t2 - t0) * f.y;
 	}
 
 	vec2 weights = vec2(1.0) - f;
 	return t3 + (t2 - t3) * weights.x + (t1 - t3) * weights.y;
-#else
-	return mix(mix(t0, t1, f.x), mix(t2, t3, f.x), f.y);
-#endif
 #endif
 }
 
