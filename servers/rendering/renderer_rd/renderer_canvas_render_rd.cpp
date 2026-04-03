@@ -3052,6 +3052,8 @@ void RendererCanvasRenderRD::_render_batch(RD::DrawListID p_draw_list, CanvasSha
 	pipeline_key.shader_specialization.use_lighting = p_batch->use_lighting;
 	pipeline_key.shader_specialization.use_msdf = p_batch->use_msdf;
 	pipeline_key.shader_specialization.use_lcd = p_batch->use_lcd;
+	pipeline_key.shader_specialization.use_filter_3point = p_batch->tex_info->state.texture_filter() == RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT;
+	pipeline_key.shader_specialization.use_filter_box = p_batch->tex_info->state.texture_filter() == RS::CANVAS_ITEM_TEXTURE_FILTER_BOX;
 	pipeline_key.lcd_blend = p_batch->has_blend;
 
 	switch (p_batch->command_type) {

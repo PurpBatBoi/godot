@@ -813,11 +813,25 @@ void RasterizerCanvasGLES3::_render_items(RID p_to_render_target, int p_item_cou
 void RasterizerCanvasGLES3::_record_item_commands(const Item *p_item, RID p_render_target, const Transform2D &p_canvas_transform_inverse, Item *&current_clip, GLES3::CanvasShaderData::BlendMode p_blend_mode, Light *p_lights, uint32_t &r_index, bool &r_batch_broken, bool &r_sdf_used, const Point2 &p_repeat_offset) {
 	RenderingServer::CanvasItemTextureFilter texture_filter = p_item->texture_filter == RS::CANVAS_ITEM_TEXTURE_FILTER_DEFAULT ? state.default_filter : p_item->texture_filter;
 	const uint64_t specialization_command_mask = ~(CanvasShaderGLES3::USE_NINEPATCH | CanvasShaderGLES3::USE_PRIMITIVE | CanvasShaderGLES3::USE_ATTRIBUTES | CanvasShaderGLES3::USE_INSTANCING);
+	uint64_t filter_specialization = 0;
+
+	switch (texture_filter) {
+		case RS::CANVAS_ITEM_TEXTURE_FILTER_3POINT:
+			filter_specialization = CanvasShaderGLES3::USE_TEXTURE_FILTER_3POINT;
+			break;
+		case RS::CANVAS_ITEM_TEXTURE_FILTER_BOX:
+			filter_specialization = CanvasShaderGLES3::USE_TEXTURE_FILTER_BOX;
+			break;
+		default:
+			break;
+	}
 
 	if (texture_filter != state.canvas_instance_batches[state.current_batch_index].filter) {
 		_new_batch(r_batch_broken);
 
 		state.canvas_instance_batches[state.current_batch_index].filter = texture_filter;
+		state.canvas_instance_batches[state.current_batch_index].specialization &= ~(CanvasShaderGLES3::USE_TEXTURE_FILTER_3POINT | CanvasShaderGLES3::USE_TEXTURE_FILTER_BOX);
+		state.canvas_instance_batches[state.current_batch_index].specialization |= filter_specialization;
 	}
 
 	RenderingServer::CanvasItemTextureRepeat texture_repeat = p_item->texture_repeat == RS::CANVAS_ITEM_TEXTURE_REPEAT_DEFAULT ? state.default_repeat : p_item->texture_repeat;

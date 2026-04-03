@@ -120,6 +120,8 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 				uint32_t use_lighting : 1;
 				uint32_t use_msdf : 1;
 				uint32_t use_lcd : 1;
+				uint32_t use_filter_3point : 1;
+				uint32_t use_filter_box : 1;
 			};
 		};
 	};
@@ -405,7 +407,7 @@ class RendererCanvasRenderRD : public RendererCanvasRender {
 	// TextureState is used to determine when a new batch is required due to a change of texture state.
 	struct TextureState {
 		static const uint32_t FILTER_SHIFT = 0;
-		static const uint32_t FILTER_BITS = 3;
+		static const uint32_t FILTER_BITS = 4;
 		static const uint32_t FILTER_MASK = (1 << FILTER_BITS) - 1;
 		static const uint32_t REPEAT_SHIFT = FILTER_BITS;
 		static const uint32_t REPEAT_BITS = 2;

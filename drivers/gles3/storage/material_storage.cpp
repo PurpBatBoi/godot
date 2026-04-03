@@ -697,6 +697,8 @@ static const RS::CanvasItemTextureRepeat repeat_from_uniform_canvas[ShaderLangua
 static const RS::CanvasItemTextureFilter filter_from_uniform[ShaderLanguage::FILTER_DEFAULT + 1] = {
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, // ShaderLanguage::TextureFilter::FILTER_NEAREST,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, // ShaderLanguage::TextureFilter::FILTER_LINEAR,
+	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_3POINT, // ShaderLanguage::TextureFilter::FILTER_3POINT,
+	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_BOX, // ShaderLanguage::TextureFilter::FILTER_BOX,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS, // ShaderLanguage::TextureFilter::FILTER_NEAREST_MIPMAP,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, // ShaderLanguage::TextureFilter::FILTER_LINEAR_MIPMAP,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC, // ShaderLanguage::TextureFilter::FILTER_NEAREST_MIPMAP_ANISOTROPIC,
@@ -707,6 +709,8 @@ static const RS::CanvasItemTextureFilter filter_from_uniform[ShaderLanguage::FIL
 static const RS::CanvasItemTextureFilter filter_from_uniform_canvas[ShaderLanguage::FILTER_DEFAULT + 1] = {
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST, // ShaderLanguage::TextureFilter::FILTER_NEAREST,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_LINEAR, // ShaderLanguage::TextureFilter::FILTER_LINEAR,
+	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_3POINT, // ShaderLanguage::TextureFilter::FILTER_3POINT,
+	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_BOX, // ShaderLanguage::TextureFilter::FILTER_BOX,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS, // ShaderLanguage::TextureFilter::FILTER_NEAREST_MIPMAP,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, // ShaderLanguage::TextureFilter::FILTER_LINEAR_MIPMAP,
 	RS::CanvasItemTextureFilter::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC, // ShaderLanguage::TextureFilter::FILTER_NEAREST_MIPMAP_ANISOTROPIC,

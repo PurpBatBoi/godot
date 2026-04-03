@@ -566,6 +566,38 @@ float msdf_median(float r, float g, float b) {
 	return max(min(r, g), min(max(r, g), b));
 }
 
+vec4 canvas_sample_filter_point(texture2D tex, sampler tex_sampler, vec2 tex_size, ivec2 texel_coord) {
+	vec2 sample_uv = (vec2(texel_coord) + vec2(0.5)) / tex_size;
+	return textureLod(sampler2D(tex, tex_sampler), sample_uv, 0.0);
+}
+
+vec4 canvas_sample_filter(texture2D tex, sampler tex_sampler, vec2 uv) {
+	if (!sc_use_filter_3point() && !sc_use_filter_box()) {
+		return texture(sampler2D(tex, tex_sampler), uv);
+	}
+
+	vec2 tex_size = vec2(textureSize(sampler2D(tex, tex_sampler), 0));
+	vec2 pixel_coord = uv * tex_size - vec2(0.5);
+	ivec2 texel_coord = ivec2(floor(pixel_coord));
+	vec2 f = fract(pixel_coord);
+
+	vec4 t0 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord);
+	vec4 t1 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord + ivec2(1, 0));
+	vec4 t2 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord + ivec2(0, 1));
+	vec4 t3 = canvas_sample_filter_point(tex, tex_sampler, tex_size, texel_coord + ivec2(1, 1));
+
+	if (sc_use_filter_3point()) {
+		if (f.x + f.y < 1.0) {
+			return t0 + (t1 - t0) * f.x + (t2 - t0) * f.y;
+		}
+
+		vec2 weights = vec2(1.0) - f;
+		return t3 + (t2 - t3) * weights.x + (t1 - t3) * weights.y;
+	}
+
+	return mix(mix(t0, t1, f.x), mix(t2, t3, f.x), f.y);
+}
+
 void main() {
 	vec4 color = color_interp;
 	vec2 uv = uv_vertex_interp.xy;
@@ -609,7 +641,7 @@ void main() {
 		float px_range = params.msdf.x;
 		float outline_thickness = params.msdf.y;
 
-		vec4 msdf_sample = texture(sampler2D(color_texture, texture_sampler), uv);
+		vec4 msdf_sample = canvas_sample_filter(color_texture, texture_sampler, uv);
 		vec2 msdf_size = vec2(textureSize(sampler2D(color_texture, texture_sampler), 0));
 		vec2 dest_size = vec2(1.0) / fwidth(uv);
 		float px_size = max(0.5 * dot((vec2(px_range) / msdf_size), dest_size), 1.0);
@@ -625,7 +657,7 @@ void main() {
 			color.a = a * color.a;
 		}
 	} else if (sc_use_lcd()) {
-		vec4 lcd_sample = texture(sampler2D(color_texture, texture_sampler), uv);
+		vec4 lcd_sample = canvas_sample_filter(color_texture, texture_sampler, uv);
 		if (lcd_sample.a == 1.0) {
 			color.rgb = lcd_sample.rgb * color.a;
 		} else {
@@ -635,7 +667,7 @@ void main() {
 #else
 	{
 #endif
-		color *= texture(sampler2D(color_texture, texture_sampler), uv);
+		color *= canvas_sample_filter(color_texture, texture_sampler, uv);
 	}
 
 	uint light_count = read_draw_data_flags & 15u; //max 15 lights
@@ -650,7 +682,7 @@ void main() {
 #endif
 
 	if (normal_used || (using_light && bool(params.batch_flags & BATCH_FLAGS_DEFAULT_NORMAL_MAP_USED))) {
-		normal.xy = texture(sampler2D(normal_texture, texture_sampler), uv).xy * vec2(2.0, -2.0) - vec2(1.0, -1.0);
+		normal.xy = canvas_sample_filter(normal_texture, texture_sampler, uv).xy * vec2(2.0, -2.0) - vec2(1.0, -1.0);
 
 #if !defined(USE_ATTRIBUTES) && !defined(USE_PRIMITIVE)
 		if (bool(read_draw_data_flags & INSTANCE_FLAGS_TRANSPOSE_RECT)) {
@@ -674,7 +706,7 @@ void main() {
 #endif
 
 	if (specular_shininess_used || (using_light && normal_used && bool(params.batch_flags & BATCH_FLAGS_DEFAULT_SPECULAR_MAP_USED))) {
-		specular_shininess = texture(sampler2D(specular_texture, texture_sampler), uv);
+		specular_shininess = canvas_sample_filter(specular_texture, texture_sampler, uv);
 		specular_shininess *= unpackUnorm4x8(params.specular_shininess);
 		specular_shininess_used = true;
 	} else {

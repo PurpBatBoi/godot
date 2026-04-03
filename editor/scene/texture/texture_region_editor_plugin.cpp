@@ -1079,6 +1079,12 @@ void TextureRegionEditor::_edit_region() {
 				case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR:
 					filter = CanvasItem::TEXTURE_FILTER_LINEAR;
 					break;
+				case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_3POINT:
+					filter = CanvasItem::TEXTURE_FILTER_3POINT;
+					break;
+				case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_BOX:
+					filter = CanvasItem::TEXTURE_FILTER_BOX;
+					break;
 				case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS:
 					filter = CanvasItem::TEXTURE_FILTER_LINEAR_WITH_MIPMAPS;
 					break;
