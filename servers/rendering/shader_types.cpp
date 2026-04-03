@@ -134,6 +134,8 @@ ShaderTypes::ShaderTypes() {
 
 	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["VERTEX"] = constt(ShaderLanguage::TYPE_VEC3);
 	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["LIGHT_VERTEX"] = ShaderLanguage::TYPE_VEC3;
+	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["VERTEX_DIFFUSE_LIGHT"] = constt(ShaderLanguage::TYPE_VEC3);
+	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["VERTEX_SPECULAR_LIGHT"] = constt(ShaderLanguage::TYPE_VEC3);
 	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["FRAGCOORD"] = constt(ShaderLanguage::TYPE_VEC4);
 	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["FRONT_FACING"] = constt(ShaderLanguage::TYPE_BOOL);
 	shader_modes[RS::SHADER_SPATIAL].functions["fragment"].built_ins["NORMAL"] = ShaderLanguage::TYPE_VEC3;
@@ -247,6 +249,8 @@ ShaderTypes::ShaderTypes() {
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("ambient_light_disabled") });
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("shadow_to_opacity") });
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("vertex_lighting") });
+		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("raw_vertex") });
+		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("gouraud_vertex") });
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("particle_trails") });
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("alpha_to_coverage") });
 		shader_modes[RS::SHADER_SPATIAL].modes.push_back({ PNAME("alpha_to_coverage_and_one") });

@@ -371,7 +371,7 @@ uniform lowp uint spot_light_index;
 #endif
 #endif // USE_ADDITIVE_LIGHTING
 
-#if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
+#if !defined(MODE_RENDER_DEPTH) && defined(USE_VERTEX_LIGHTING)
 
 // Eyeballed approximation of `exp2(15.0 * (1.0 - roughness) + 1.0) * 0.25`.
 // Uses slightly more FMA instructions (2x rate) to avoid special instructions (0.25x rate).
@@ -382,12 +382,14 @@ mediump float roughness_to_shininess(mediump float roughness) {
 	return r * r2 * r2 * 2000.0;
 }
 
-void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional, float roughness,
+void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional, float roughness, float specular_amount,
 		inout vec3 diffuse_light, inout vec3 specular_light) {
 	float NdotL = min(dot(N, L), 1.0);
 	float cNdotL = max(NdotL, 0.0); // clamped NdotL
 
-#if defined(DIFFUSE_LAMBERT_WRAP)
+#if defined(USE_RAW_VERTEX) || defined(USE_GOURAUD_VERTEX)
+	float diffuse_brdf_NL = cNdotL;
+#elif defined(DIFFUSE_LAMBERT_WRAP)
 	// Energy conserving lambert wrap shader.
 	// https://web.archive.org/web/20210228210901/http://blog.stevemcauley.com/2011/12/03/energy-conserving-wrapped-diffuse/
 	float diffuse_brdf_NL = max(0.0, (cNdotL + roughness) / ((1.0 + roughness) * (1.0 + roughness))) * (1.0 / M_PI);
@@ -400,6 +402,12 @@ void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional
 
 #if !defined(SPECULAR_DISABLED)
 	float specular_brdf_NL = 0.0;
+#if defined(USE_GOURAUD_VERTEX)
+	vec3 R = reflect(-L, N);
+	float phong_term = max(dot(R, V), 0.0);
+	float shininess = roughness_to_shininess(roughness);
+	specular_brdf_NL = pow(phong_term, shininess) * step(0.0, cNdotL);
+#else
 	// Normalized blinn always unless disabled.
 	vec3 H = normalize(V + L);
 	float cNdotH = clamp(dot(N, H), 0.0, 1.0);
@@ -407,7 +415,8 @@ void light_compute(vec3 N, vec3 L, vec3 V, vec3 light_color, bool is_directional
 	float blinn = pow(cNdotH, shininess);
 	blinn *= (shininess + 2.0) * (1.0 / (8.0 * M_PI)) * cNdotL;
 	specular_brdf_NL = blinn;
-	specular_light += specular_brdf_NL * light_color;
+#endif
+	specular_light += specular_brdf_NL * light_color * specular_amount;
 #endif
 }
 
@@ -428,7 +437,7 @@ void light_process_omni(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float 
 	float omni_attenuation = get_omni_spot_attenuation(light_length, omni_lights[idx].inv_radius, omni_lights[idx].attenuation);
 	vec3 color = omni_lights[idx].color * omni_attenuation; // No light shaders here, so combine.
 
-	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness,
+	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness, omni_lights[idx].specular_amount,
 			diffuse_light,
 			specular_light);
 }
@@ -450,12 +459,12 @@ void light_process_spot(uint idx, vec3 vertex, vec3 eye_vec, vec3 normal, float 
 
 	vec3 color = spot_lights[idx].color * spot_attenuation;
 
-	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness,
+	light_compute(normal, normalize(light_rel_vec), eye_vec, color, false, roughness, spot_lights[idx].specular_amount,
 			diffuse_light, specular_light);
 }
 #endif // !defined(DISABLE_LIGHT_SPOT) || (defined(ADDITIVE_SPOT) && defined(USE_ADDITIVE_LIGHTING))
 
-#endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED) && defined(USE_VERTEX_LIGHTING)
+#endif // !defined(MODE_RENDER_DEPTH) && defined(USE_VERTEX_LIGHTING)
 
 #endif // USE_VERTEX_LIGHTING
 #endif // RENDER_MOTION_VECTORS
@@ -825,7 +834,7 @@ void vertex_shader(vec4 vertex_angle_attrib_input,
 
 #ifndef RENDER_MOTION_VECTORS
 #ifdef USE_VERTEX_LIGHTING
-#if !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED)
+#if !defined(MODE_RENDER_DEPTH)
 #ifdef USE_MULTIVIEW
 	vec3 view = -normalize(vertex_interp - eye_offset);
 #else
@@ -844,7 +853,7 @@ void vertex_shader(vec4 vertex_angle_attrib_input,
 			continue;
 		}
 #endif
-		light_compute(normal_interp, normalize(directional_lights[i].direction), normalize(view), directional_lights[i].color * directional_lights[i].energy, true, roughness,
+		light_compute(normal_interp, normalize(directional_lights[i].direction), normalize(view), directional_lights[i].color * directional_lights[i].energy, true, roughness, directional_lights[i].specular,
 				diffuse_light_interp.rgb,
 				specular_light_interp.rgb);
 	}
@@ -872,7 +881,7 @@ void vertex_shader(vec4 vertex_angle_attrib_input,
 #if !defined(ADDITIVE_OMNI) && !defined(ADDITIVE_SPOT)
 
 	if (bool(directional_lights[directional_shadow_index].mask & layer_mask)) {
-		light_compute(normal_interp, normalize(directional_lights[directional_shadow_index].direction), normalize(view), directional_lights[directional_shadow_index].color * directional_lights[directional_shadow_index].energy, true, roughness,
+		light_compute(normal_interp, normalize(directional_lights[directional_shadow_index].direction), normalize(view), directional_lights[directional_shadow_index].color * directional_lights[directional_shadow_index].energy, true, roughness, directional_lights[directional_shadow_index].specular,
 				additive_diffuse_light_interp.rgb,
 				additive_specular_light_interp.rgb);
 	}
@@ -889,7 +898,7 @@ void vertex_shader(vec4 vertex_angle_attrib_input,
 #endif // ADDITIVE_SPOT
 
 #endif // USE_ADDITIVE_LIGHTING
-#endif // !defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED)
+#endif // !defined(MODE_RENDER_DEPTH)
 #endif // USE_VERTEX_LIGHTING
 #endif // RENDER_MOTION_VECTORS
 }
@@ -2080,6 +2089,13 @@ void main() {
 	float normal_map_depth = 1.0;
 
 	vec2 screen_uv = gl_FragCoord.xy * scene_data_block.data.screen_pixel_size;
+	vec3 vertex_diffuse_light = vec3(0.0);
+	vec3 vertex_specular_light = vec3(0.0);
+
+#if defined(USE_VERTEX_LIGHTING) && !defined(MODE_RENDER_DEPTH)
+	vertex_diffuse_light = diffuse_light_interp;
+	vertex_specular_light = specular_light_interp;
+#endif // defined(USE_VERTEX_LIGHTING) && !defined(MODE_RENDER_DEPTH)
 
 	float sss_strength = 0.0;
 

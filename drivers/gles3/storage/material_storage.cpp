@@ -1321,6 +1321,8 @@ MaterialStorage::MaterialStorage() {
 		actions.renames["CUSTOM2"] = "custom2_attrib";
 		actions.renames["CUSTOM3"] = "custom3_attrib";
 		actions.renames["LIGHT_VERTEX"] = "light_vertex";
+		actions.renames["VERTEX_DIFFUSE_LIGHT"] = "vertex_diffuse_light";
+		actions.renames["VERTEX_SPECULAR_LIGHT"] = "vertex_specular_light";
 
 		actions.renames["NODE_POSITION_WORLD"] = "model_matrix[3].xyz";
 		actions.renames["CAMERA_POSITION_WORLD"] = "scene_data_block.data.inv_view_matrix[3].xyz";
@@ -1417,6 +1419,8 @@ MaterialStorage::MaterialStorage() {
 			// If forcing vertex shading, this will be defined already.
 			actions.render_mode_defines["vertex_lighting"] = "#define USE_VERTEX_LIGHTING\n";
 		}
+		actions.render_mode_defines["raw_vertex"] = "#define USE_VERTEX_LIGHTING\n#define USE_RAW_VERTEX\n";
+		actions.render_mode_defines["gouraud_vertex"] = "#define USE_VERTEX_LIGHTING\n#define USE_GOURAUD_VERTEX\n";
 		actions.render_mode_defines["fog_disabled"] = "#define FOG_DISABLED\n";
 
 		actions.render_mode_defines["specular_occlusion_disabled"] = "#define SPECULAR_OCCLUSION_DISABLED\n";
