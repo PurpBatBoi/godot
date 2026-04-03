@@ -27,6 +27,10 @@ Custom engine-level support for per-vertex lighting results to be used in the fr
     - `render_mode vertex_lighting;`: Enables standard Godot lighting (Lambert/Burley) at the vertex stage.
     - `render_mode raw_vertex;`: Uses a highly optimized raw Lambertian (`cNdotL`) diffuse model for an ultra-fast, classic look.
     - `render_mode gouraud_vertex;`: Implements classic Gouraud shading with a simple Phong specular approximation calculated per-vertex.
+- **New Shader Built-ins** (Fragment Stage):
+    - `VERTEX_DIFFUSE_LIGHT`: (vec3) Access the interpolated diffuse lighting result from the vertex stage.
+    - `VERTEX_SPECULAR_LIGHT`: (vec3) Access the interpolated specular lighting result from the vertex stage.
+    - `LIGHT_VERTEX`: (vec3) The view-space vertex position, available in `fragment()` for specialized calculations.
 - **Optimized Data Flow**: Lighting for all light types (Directional, Omni, Spot) is computed once per vertex and interpolated across the surface using custom internal varyings, drastically reducing fragment shader overhead.
 
 ---
