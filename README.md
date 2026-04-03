@@ -6,6 +6,31 @@
   </a>
 </p>
 
+## Fork Features
+
+This is a custom fork of Godot Engine with the following additions:
+
+### Tri-Point Linear Texture Filter (`filter_3point`)
+
+A custom 3-point texture interpolation filter, inspired by the N64/PS1-era filtering aesthetic. Unlike standard bilinear (4-point) filtering, this method splits each texel quad into two triangles and interpolates across three points, producing a characteristic "sharp-linear" look that smooths pixels without the mushiness of bilinear.
+
+- **Shader hint**: Use `uniform sampler2D my_tex : filter_3point;` in any GDShader
+- **Automatic rewriting**: The shader compiler intercepts `texture()` calls on `filter_3point` samplers and replaces them with the custom filtering function — no manual shader code needed
+- **UI integration**: Available as "Tri-Point Linear" in CanvasItem, Viewport, and Project Settings texture filter dropdowns
+- **Both renderers**: Supported in GLES3 (Compatibility) and RenderingDevice (Forward+/Mobile) backends
+
+### Per-Vertex Lighting (GLES3 Compatibility)
+
+Custom engine-level support for per-vertex lighting results to be used in the fragment shader.
+
+- **New Render Modes**:
+    - `render_mode vertex_lighting;`: Enables standard Godot lighting (Lambert/Burley) at the vertex stage.
+    - `render_mode raw_vertex;`: Uses a highly optimized raw Lambertian (`cNdotL`) diffuse model for an ultra-fast, classic look.
+    - `render_mode gouraud_vertex;`: Implements classic Gouraud shading with a simple Phong specular approximation calculated per-vertex.
+- **Optimized Data Flow**: Lighting for all light types (Directional, Omni, Spot) is computed once per vertex and interpolated across the surface using custom internal varyings, drastically reducing fragment shader overhead.
+
+---
+
 ## 2D and 3D cross-platform game engine
 
 **[Godot Engine](https://godotengine.org) is a feature-packed, cross-platform
